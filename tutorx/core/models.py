@@ -1,5 +1,6 @@
 from django.db import models
 from user.models import *
+from django.core.validators import MaxValueValidator
 
 class TutorBooking(models.Model):
     client = models.ForeignKey(Client, related_name='bookings', on_delete=models.CASCADE)
@@ -29,15 +30,35 @@ class ClientNotification(models.Model):
     client = models.ForeignKey(Client, related_name='notifications_received', on_delete=models.CASCADE)
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    
+class TutorRating(models.Model):
+    tutor = models.ForeignKey(Tutor, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    rating = models.PositiveBigIntegerField(validators=[MaxValueValidator(5)])
+    comment = models.TextField()
+    date_rated = models.DateTimeField(auto_now_add=True)
+    
+class CompletedJob(models.Model):
+    tutor = models.ForeignKey(Tutor, on_delete=models.CASCADE)
+    client = models.ForeignKey(Client, on_delete=models.CASCADE)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Completed Job for {self.client} by {self.tutor}"
+
+class OngoingJob(models.Model):
+    tutor = models.ForeignKey(Tutor, on_delete=models.CASCADE)
+    client = models.ForeignKey(Client, on_delete=models.CASCADE)
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Ongoing Job for {self.client} by {self.tutor}"
 
 class TutorRequest(models.Model):
-    sender = models.ForeignKey(Tutor, related_name='sent_requests', on_delete=models.CASCADE)
-    receiver = models.ForeignKey(Client, related_name='received_requests', on_delete=models.CASCADE)
+    tutor = models.ForeignKey(Tutor, on_delete=models.CASCADE)
+    client = models.ForeignKey(Client, on_delete=models.CASCADE)
     message = models.TextField()
-    STATUS_CHOICES = (
-        ('pending', 'Pending'),
-        ('accepted', 'Accepted'),
-        ('rejected', 'Rejected'),
-    )
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)

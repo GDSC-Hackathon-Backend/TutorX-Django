@@ -27,10 +27,29 @@ class NotificationCAdmin(admin.ModelAdmin):
         return obj.tutor.user.username
     
     tutor_username.short_description = 'Tutor Username'
+@admin.register(OngoingJob)
+class ongoingjobAdmin(admin.ModelAdmin):
+    list_display = ('client_username', 'start_date')
+
+    def client_username(self, obj):
+        return obj.client.user.username
+    
+    client_username.short_description = 'Client Username'
+@admin.register(CompletedJob)
+class completedjobAdmin(admin.ModelAdmin):
+    list_display = ('client_username', 'end_date')
+
+    def client_username(self, obj):
+        return obj.client.user.username
+    
+    client_username.short_description = 'Client Username'
 
 @admin.register(TutorRequest)
 class TutorRequestAdmin(admin.ModelAdmin):
-    list_display = ('sender', 'receiver', 'status', 'created_at')
-    list_filter = ('status', 'created_at')
-    search_fields = ('sender__username', 'receiver__username')
+    list_display = ('client_username','message', 'created_at')
+    def client_username(self, obj):
+        return obj.client.user.username
+    
+    client_username.short_description = 'Client Username'
+    
 

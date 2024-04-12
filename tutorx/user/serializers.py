@@ -36,7 +36,7 @@ class TutorRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tutor
-        fields = ['username', 'email', 'password', 'full_name', 'phone_number', 'level', 'bio', 'working_days', 'uni', 'education','location', 'cv']
+        fields = ['username', 'email', 'password', 'full_name', 'phone_number', 'level', 'bio', 'subject','working_days', 'uni', 'education','location', 'cv']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):

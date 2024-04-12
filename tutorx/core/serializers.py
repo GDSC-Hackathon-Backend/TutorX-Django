@@ -9,8 +9,8 @@ class TutorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tutor
-        fields = ['id','email', 'full_name', 'username', 'bio', 'level', 'location','profile']
-        
+        #fields = ['id','email', 'full_name', 'username', 'bio','description' ,'level', 'location','profile']
+        fields = '__all__'
 class ClientSerializer(serializers.ModelSerializer):
     email = serializers.CharField(source='user.email', read_only=True)
     full_name = serializers.CharField(source='user.full_name', read_only=True)
@@ -30,6 +30,10 @@ class TutorBookingSerializer(serializers.ModelSerializer):
         client = self.context['request'].user.client  # Assuming client is logged in
         return TutorBooking.objects.create(tutor_id=tutor_id, client=client, **validated_data)
 
+class TutorRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TutorRequest
+        fields = ['message']
 class TutorNotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = TutorNotification
@@ -45,7 +49,33 @@ class ClientNotificationSerializer(serializers.ModelSerializer):
         model = ClientNotification
         fields = '__all__'
 
-class TutorRequestSerializer(serializers.ModelSerializer):
+class RatingSerializer(serializers.ModelSerializer):
     class Meta:
-        model = TutorRequest
-        fields = '__all__'
+        model = TutorRating
+        fields = ('rating', )
+        
+class OngoingJobSerializer(serializers.ModelSerializer):
+    ongoing_jobs_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OngoingJob
+        fields = ['id', 'tutor', 'client', 'start_date', 'end_date', 'ongoing_jobs_count']
+
+    def get_ongoing_jobs_count(self, obj):
+        return OngoingJob.objects.filter(tutor=obj.tutor).count()
+class OngoingJobCompleteSerializer(serializers.ModelSerializer):
+    end_date = serializers.DateField()
+
+    class Meta:
+        model = OngoingJob
+        fields = ['end_date']
+
+class CompletedJobSerializer(serializers.ModelSerializer):
+    completed_jobs_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CompletedJob
+        fields = ['id', 'tutor', 'client', 'start_date', 'end_date', 'completed_at', 'completed_jobs_count']
+
+    def get_completed_jobs_count(self, obj):
+        return CompletedJob.objects.filter(tutor=obj.tutor).count()

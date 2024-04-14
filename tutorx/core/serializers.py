@@ -48,11 +48,6 @@ class ClientNotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClientNotification
         fields = '__all__'
-
-class RatingSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TutorRating
-        fields = ('rating', )
         
 class OngoingJobSerializer(serializers.ModelSerializer):
     ongoing_jobs_count = serializers.SerializerMethodField()
@@ -79,3 +74,14 @@ class CompletedJobSerializer(serializers.ModelSerializer):
 
     def get_completed_jobs_count(self, obj):
         return CompletedJob.objects.filter(tutor=obj.tutor).count()
+    
+    
+class ClientAttendanceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClientAttendance
+        fields = ['month','year','days_attended']
+        
+class TutorRatingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TutorRating
+        fields = ['rating','comment']

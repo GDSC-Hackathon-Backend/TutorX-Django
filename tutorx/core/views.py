@@ -120,6 +120,11 @@ class TutorNotificationDetailView(generics.UpdateAPIView):
             instance.is_approved = True
             instance.is_declined = False 
             instance.save()
+            
+            TutorBooking.objects.create(
+                tutor=instance.tutor,
+                client=instance.client,
+            )
             OngoingJob.objects.create(
                 tutor=instance.tutor,
                 client=instance.client,
@@ -127,7 +132,7 @@ class TutorNotificationDetailView(generics.UpdateAPIView):
             )
 
             ClientNotification.objects.create(client_id=instance.client_id, tutor_id=instance.tutor_id, message=f"{instance.tutor.user.full_name}'s has approved your request.")
-            instance.delete() 
+            #instance.delete() 
             return Response({'message': 'You have approved the request'}, status=status.HTTP_200_OK)
         
         elif is_declined == 'true':
@@ -135,9 +140,8 @@ class TutorNotificationDetailView(generics.UpdateAPIView):
             instance.is_approved = False 
             instance.save()
             
-        
             ClientNotification.objects.create(client_id=instance.client_id, tutor_id=instance.tutor_id, message=f"{instance.tutor.user.full_name}'s has declined your request.")
-            instance.delete() 
+            #instance.delete() 
             return Response({'message': 'You have declined the request'}, status=status.HTTP_200_OK)
         
         else:
@@ -169,13 +173,30 @@ class OngoingJobCompleteView(generics.UpdateAPIView):
 class CompletedJobListView(generics.ListAPIView):
     queryset = CompletedJob.objects.all()
     serializer_class = CompletedJobSerializer
-    
-class TutorRatingCreateView(generics.CreateAPIView):
-    queryset = TutorRating.objects.all()
-    serializer_class = RatingSerializer
+        
+class ClientAttendanceListCreateAPIView(generics.ListCreateAPIView):
+    serializer_class = ClientAttendanceSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return ClientAttendance.objects.filter(client=self.request.user.client)
 
     def perform_create(self, serializer):
-        tutor_booking_id = self.kwargs.get('tutor_booking_id')
-        tutor_booking = get_object_or_404(TutorBooking, id=tutor_booking_id)
+        month = self.request.data.get('month')
+        year = self.request.data.get('year')
+        days_attended = {str(day): False for day in range(1, 32)}
+        tutor_id = self.request.data.get('tutor')
+        serializer.save(client=self.request.user.client, tutor_id=tutor_id, month=month, year=year, days_attended=days_attended)
 
-        serializer.save(tutor_booking=tutor_booking)
+class TutorRatingCreateAPIView(APIView):
+    def post(self, request, tutor_id):
+        client = request.user.client
+        
+        if TutorBooking.objects.filter(client=client, tutor_id=tutor_id).exists():
+            serializer = TutorRatingSerializer(data=request.data, context={'request': request})
+            if serializer.is_valid():
+                serializer.save(tutor_id=tutor_id, client_id=client.id)
+                return Response("Rating submitted successfully", status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response("You can only rate tutors you have booked", status=status.HTTP_400_BAD_REQUEST)

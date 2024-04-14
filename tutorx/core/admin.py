@@ -51,5 +51,14 @@ class TutorRequestAdmin(admin.ModelAdmin):
         return obj.client.user.username
     
     client_username.short_description = 'Client Username'
+@admin.register(TutorRating)
+class TutorRatingAdmin(admin.ModelAdmin):
+    list_display = ('client_full_name','rating', 'comment','tutor_full_name')
+    def client_full_name(self, obj):
+        return obj.client.user.full_name
+    def tutor_full_name(self, obj):
+        return obj.tutor.user.full_name
+    
+    #tutor_full_name.short_description = 'Tutor Username'
     
 
